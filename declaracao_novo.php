@@ -107,13 +107,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <title>Gerar Declaração</title>
 </head>
 <body>
-    <h1>Gerar Declaração</h1>
-    <form action="declaracao_novo.php" method="post">
-        <label for="nome">Nome:</label>
-        <input type="text" id="nome" name="nome" required><br><br>
-        <label for="sobrenome">Sobrenome:</label>
-        <input type="text" id="sobrenome" name="sobrenome" required><br><br>
-        <button type="submit">Gerar Declaração</button>
-    </form>
+    <a href="index.php">Voltar para tela inicial</a>
 </body>
 </html>
