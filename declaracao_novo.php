@@ -59,14 +59,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <table width="100%" style="border-collapse: collapse;">
                         <tr>
                             <td style="width: 20%; text-align: left;">
-                                <img src="c:/xampp/htdocs/logo_ead.png" alt="Header Image EAD" style="height: 50px; width: auto;" />
+                                <img src="c:/xampp/htdocs/desafio/logo_ead.png" alt="Header Image EAD" style="height: 50px; width: auto;" />
                             </td>
                             <td style="width: 60%; text-align: center;">
                                 <strong>Universidade Federal Rural de Pernambuco - UFRPE</strong><br>
                                 Unidade Acadêmica de Educação a Distância e Tecnologia
                             </td>
                             <td style="width: 20%; text-align: right;">
-                                <img src="c:/xampp/htdocs/logo_edu.png" alt="Header Image EDU" style="height: 50px; width: auto;" />
+                                <img src="c:/xampp/htdocs/desafio/logo_edu.png" alt="Header Image EDU" style="height: 50px; width: auto;" />
                             </td>
                         </tr>
                     </table>';
