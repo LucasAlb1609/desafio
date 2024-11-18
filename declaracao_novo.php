@@ -63,6 +63,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         // Escrever conteúdo HTML para o PDF
         $mpdf->WriteHTML($htmlContent);
 
+        // Definir o fuso horário do Brasil (horário de Brasília)
+        date_default_timezone_set('America/Sao_Paulo');
+
         // Definir a data e hora atual no formato desejado
         $dateTime = date('Ymd_His');
 
