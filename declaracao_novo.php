@@ -1,6 +1,12 @@
 <?php
-require 'C:\xampp\htdocs\desafio\\vendor\autoload.php';
-require_once __DIR__ . '/vendor/autoload.php';
+$autoloadPath = __DIR__ . '/vendor/autoload.php';
+
+if (file_exists($autoloadPath)) {
+    require_once $autoloadPath;
+} else {
+    die('Erro: O arquivo autoload.php não foi encontrado. Execute "composer install" para instalar as dependências.');
+}
+
 include 'conexao.php';
 
 use PhpOffice\PhpWord\TemplateProcessor;
@@ -24,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $dataAtual = date('d') . " de " . date('F') . " de " . date('Y');
 
         // Carregar o template .docx
-        $templateProcessor = new TemplateProcessor('C:\\xampp\\htdocs\\desafio\\templates\\template.docx');
+        $templateProcessor = new \PhpOffice\PhpWord\TemplateProcessor(__DIR__ . '/templates/template.docx');
 
         // Substituir os placeholders com os dados
         $templateProcessor->setValue('NOME', $nome);
@@ -53,39 +59,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         // Inicializar o mPDF
         $mpdf = new Mpdf();
-
-        // Definir o cabeçalho e rodapé diretamente usando o HTML gerado do Word
-        $headerHtml = '
-                    <table width="100%" style="border-collapse: collapse;">
-                        <tr>
-                            <td style="width: 20%; text-align: left;">
-                                <img src="c:/xampp/htdocs/desafio/logo_ead.png" alt="Header Image EAD" style="height: 50px; width: auto;" />
-                            </td>
-                            <td style="width: 60%; text-align: center;">
-                                <strong>Universidade Federal Rural de Pernambuco - UFRPE</strong><br>
-                                Unidade Acadêmica de Educação a Distância e Tecnologia
-                            </td>
-                            <td style="width: 20%; text-align: right;">
-                                <img src="c:/xampp/htdocs/desafio/logo_edu.png" alt="Header Image EDU" style="height: 50px; width: auto;" />
-                            </td>
-                        </tr>
-                    </table>';
-
-
-        $footerHtml = '<div style="text-align: center;">
-        <p>Unidade Acadêmica de Educação a Distância e Tecnologia
-        <p>Rua Dom Manoel de Medeiros, s/n, Dois Irmãos - CEP: 52171-900 - Recife/ PE
-        <p>Tel.: (81) 3320.6103 - www.ead.ufrpe.br 
-        </div>';
-
-        $mpdf->SetHTMLHeader($headerHtml);
-        $mpdf->SetHTMLFooter($footerHtml);
         
         // Escrever conteúdo HTML para o PDF
         $mpdf->WriteHTML($htmlContent);
 
-        // Definir o caminho do arquivo PDF a ser salvo
-        $pdfFilePath = 'C:\\xampp\\htdocs\\desafio\\downloads\\declaracao_' . uniqid() . '.pdf';
+        // Definir o fuso horário do Brasil (horário de Brasília)
+        date_default_timezone_set('America/Sao_Paulo');
+
+        // Definir a data e hora atual no formato desejado
+        $dateTime = date('Ymd_His');
+
+        // Gerar o caminho do arquivo PDF com data e hora no nome
+        $pdfFilePath = __DIR__ . DIRECTORY_SEPARATOR . 'downloads' . DIRECTORY_SEPARATOR . 'declaracao_' . $dateTime . '.pdf';
+
         $mpdf->Output($pdfFilePath, 'F');
 
         // Remover arquivos temporários (o template e o HTML gerado)
