@@ -12,10 +12,35 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $data_inicio_obj = new DateTime($data_inicio);
     $data_inicio_obj->modify("+$periodo year");
     $data_final = $data_inicio_obj->format('Y-m-d');
+    $idTeste = 1;
 
-    // Inserir dados na tabela vinculos
-    $stmt = $conn->prepare("INSERT INTO vinculos (data_inicio, data_final, pessoa_id) VALUES (?, ?, ?)");
-    $stmt->bind_param("ssi", $data_inicio, $data_final, $pessoa_id);
+    $stmt2 = $conn->prepare("SELECT * FROM pessoas WHERE id = ?");
+    $stmt2->bind_param("i", $idTeste);  // "i" para inteiro
+    $stmt2->execute();
+    $result = $stmt2->get_result();
+    if ($result->num_rows > 0) {
+        // Obter o CPF da pessoa
+        $row = $result->fetch_assoc();
+        $cpf = $row['cpf'];
+
+        echo "cpf: " . $cpf;
+
+        $codigoHash = gerarCodigoHash($idTeste, $cpf);
+
+        echo "Hash: " . $codigoHash;
+
+        // Agora você pode somar o CPF com outro valor. Exemplo:
+        //$outroElemento = 1234567890; // Esse valor pode ser o que você quiser somar
+        //$resultado = $cpf + $outroElemento;  // Somando os valores
+
+        // Exibir o resultado ou realizar outra ação
+    } else {
+        echo "Pessoa não encontrada.";
+    }
+
+    // Inserir dados na tabela vinculo
+    $stmt = $conn->prepare("INSERT INTO vinculo (data_inicio, data_final, pessoa_id, code_id) VALUES (?, ?, ?, ?)");
+    $stmt->bind_param("ssss", $data_inicio, $data_final, $pessoa_id, $codigoHash); // Corrigido para 'sssi'
 
     if ($stmt->execute()) {
         echo "<p style='color: green;'>Vínculo cadastrado com sucesso!</p>";
@@ -24,6 +49,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 }
 
+function gerarCodigoHash($id, $cpf) {
+    // Combine o ID e o CPF em uma única string
+    $dados = $id . $cpf;
+
+    // Gera o hash usando o algoritmo SHA-256
+    $hash = hash('sha256', $dados);
+
+    return $hash;
+}
 ?>
 
 <!DOCTYPE html>
@@ -36,6 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         function calcularDataFinal() {
             var dataInicio = document.getElementById('data_inicio').value;
             var periodo = document.getElementById('periodo').value;
+            var pessoaId = document.getElementById('pessoa_id').values;
 
             if (dataInicio && periodo) {
                 var dataInicioObj = new Date(dataInicio);
@@ -48,6 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 document.getElementById('data_final').value = ano + '-' + mes + '-' + dia;
             }
         }
+
     </script>
 </head>
 <body>
@@ -62,11 +98,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             while ($row = $result->fetch_assoc()) {
                 echo "<option value='{$row['id']}'>{$row['nome']} {$row['sobrenome']}</option>";
             }
+            
             ?>
         </select><br><br>
 
         <label for="data_inicio">Data de Início:</label>
-        <input type="date" name="data_inicio" id="data_inicio" required onchange="calcularDataFinal()"><br><br>
+        <input type="date" name="data_inicio" id="data_inicio" required onchange="calcularDataFinal()">
 
         <label for="periodo">Período de Vínculo (em anos):</label>
         <select name="periodo" id="periodo" required onchange="calcularDataFinal()">
