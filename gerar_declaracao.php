@@ -6,11 +6,9 @@
 </head>
 <body>
     <h1>Gerar Declaração</h1>
-    <form action="declaracao_novo.php" method="post">
-        <label for="nome">Nome:</label>
-        <input type="text" id="nome" name="nome" required><br><br>
-        <label for="sobrenome">Sobrenome:</label>
-        <input type="text" id="sobrenome" name="sobrenome" required><br><br>
+    <form action="declaracaov3.php" method="post">
+        <label for="cpf">CPF:</label>
+        <input type="text" id="cpf" name="cpf" required><br><br>
         <button type="submit">Gerar Declaração</button>
     </form>
 </body>

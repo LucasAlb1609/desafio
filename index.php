@@ -16,5 +16,8 @@
     <!-- Link para buscar Vínculo por CPF -->
     <p><a href="consulta_cpf.php">Buscar Vínculo</a></p>
 
+    <!-- Link para buscar Vínculo pelo Hash Code -->
+    <p><a href="consulta_hash.php">Buscar Hash Code</a></p>
+
 </body>
 </html>
