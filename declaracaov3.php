@@ -1,5 +1,6 @@
 <?php
 $autoloadPath = __DIR__ . '/vendor/autoload.php';
+require __DIR__ . '/vendor/phpqrcode/qrlib.php';
 
 if (file_exists($autoloadPath)) {
     require_once $autoloadPath;
@@ -44,6 +45,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $codeId = 'Nenhum vínculo encontrado'; // Caso não exista vínculo
         }
 
+        // URL para verificação online
+        $verificationUrl = "https://www.exemplo.com/verificar/$codeId";
+
+        // Gera o QR Code e salva como imagem
+        $qrCodePath = 'qrcode.png';
+        QRcode::png($verificationUrl, $qrCodePath, QR_ECLEVEL_L, 3);
+
         // Carregar o template .docx
         $templateProcessor = new \PhpOffice\PhpWord\TemplateProcessor(__DIR__ . '/templates/template.docx');
 
@@ -51,8 +59,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $templateProcessor->setValue('NOME', $dados['nome']);
         $templateProcessor->setValue('SOBRENOME', $dados['sobrenome']);
         $templateProcessor->setValue('CIDADE', $cidade);
-        $templateProcessor->setValue('CPF', $cpf); // Substitui o placeholder ${CPF}
-        $templateProcessor->setValue('CODE_ID', $codeId); // Substitui o placeholder ${CODE_ID}
+        $templateProcessor->setValue('CPF', $cpf);
+        $templateProcessor->setValue('CODE_ID', $codeId);
         $templateProcessor->setValue('DATA', $dataAtual);
 
         // Salvar o arquivo preenchido em formato .docx temporário
@@ -68,6 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         // Carregar o conteúdo HTML
         $htmlContent = file_get_contents($htmlTempFile);
 
+ 
         // Remove tags que possam causar problemas de layout
         $htmlContent = preg_replace('/<style\b[^>]*>(.*?)<\/style>/is', '', $htmlContent); // Remove CSS interno
         $htmlContent = preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', '', $htmlContent); // Remove JavaScript
@@ -79,6 +88,34 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         
         // Escrever conteúdo HTML para o PDF
         $mpdf->WriteHTML($htmlContent);
+
+        $mpdf->Image($qrCodePath, 12, 232, 25, 25, 'png');
+
+        // Adicionar o texto diretamente no PDF usando HTML
+        $linkHtml = '
+        <style>
+            .custom-text {
+                font-family: Arial;
+                font-size: 9pt;
+                position: absolute;
+                left: 140px;
+            }
+            .code-text {
+                top: 900px;
+            }
+            .validation-text {
+                top: 916px;
+            }
+            .link-text {
+                top: 932px;
+            }
+        </style>
+        <div class="custom-text code-text">Código da declaração: ' . $codeId . '</div>
+        <div class="custom-text validation-text">A presente declaração pode ter a sua validade comprovada acessando o QRCode à esquerda,</div>
+        <div class="custom-text link-text">ou, informando o código acima no endereço <a href="https://www.ead.ufrpe.br/declaracao-bolsistas/validacao">https://www.ead.ufrpe.br/declaracao-bolsistas/validacao</a></div>
+        ';
+
+        $mpdf->WriteHTML($linkHtml);
 
         // Definir o fuso horário do Brasil (horário de Brasília)
         date_default_timezone_set('America/Sao_Paulo');
