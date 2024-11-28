@@ -75,6 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <th>Data de Início</th>
                     <th>Data Final</th>
                     <th>Hash Code</th>
+                    <th>Ações</th>
                 </tr>
             </thead>
             <tbody>
@@ -84,6 +85,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <td><?php echo htmlspecialchars($row['data_Inicio']); ?></td>
                         <td><?php echo htmlspecialchars($row['data_Final']); ?></td>
                         <td><?php echo htmlspecialchars($row['code_Id']); ?></td>
+                        <td>
+                            <form action="gerar_pdf.php" method="post" target="_blank">
+                                <input type="hidden" name="vinculo_id" value="<?php echo htmlspecialchars($row['id']); ?>">
+                                <button type="submit">Imprimir PDF</button>
+                            </form>
+                        </td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>
