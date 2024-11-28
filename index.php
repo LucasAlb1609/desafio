@@ -8,6 +8,9 @@
     <h1>Escolha uma opção</h1>
     
     <!-- Link para Gerar Declaração -->
+    <p><a href="pessoas.php">Cadastrar Pessoa</a></p>
+
+    <!-- Link para Gerar Declaração -->
     <p><a href="gerar_declaracao.php">Gerar Declaração</a></p>
 
     <!-- Link para cadastar Vínculo -->
