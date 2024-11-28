@@ -5,7 +5,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $hashCode = $_POST['hash_code'];
 
     // Consultar os dados da tabela vinculo usando o Hash Code (code_id)
-    $stmt = $conn->prepare("SELECT v.data_inicio, v.data_final, v.code_id, p.nome, p.sobrenome
+    $stmt = $conn->prepare("SELECT v.data_inicio, v.data_final, v.code_id, p.nome, p.sobrenome, p.cpf
                             FROM vinculo v
                             JOIN pessoas p ON v.pessoa_id = p.id
                             WHERE v.code_id = ?");
@@ -20,6 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <tr>
                     <th>Nome</th>
                     <th>Sobrenome</th>
+                    <th>CPF</th>
                     <th>Data de Início</th>
                     <th>Data de Final</th>
                     <th>Hash Code (code_id)</th>
@@ -29,6 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             echo "<tr>
                     <td>{$row['nome']}</td>
                     <td>{$row['sobrenome']}</td>
+                    <td>{$row['cpf']}</td>
                     <td>{$row['data_inicio']}</td>
                     <td>{$row['data_final']}</td>
                     <td>{$row['code_id']}</td>
