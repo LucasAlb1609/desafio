@@ -6,9 +6,8 @@
 </head>
 <body>
     <h1>Escolha uma opção</h1>
-    <p><a href="pessoas.php">Cadastrar Pessoas</a></p>
 
-    <!-- Link para Gerar Declaração -->
+    <!-- Link para Cadastro de Pessoas -->
     <p><a href="pessoas.php">Cadastrar Pessoa</a></p>
 
     <!-- Link para Gerar Declaração -->
