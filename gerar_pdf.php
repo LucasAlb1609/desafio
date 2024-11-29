@@ -3,6 +3,9 @@ require __DIR__ . '/vendor/autoload.php';
 require __DIR__ . '/vendor/phpqrcode/qrlib.php';
 include 'conexao.php';
 
+$host = $_SERVER['HTTP_HOST'];
+$scheme = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
+
 use PhpOffice\PhpWord\TemplateProcessor;
 use PhpOffice\PhpWord\IOFactory;
 use Mpdf\Mpdf;
@@ -34,9 +37,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $dataAtual = date('d') . " de " . date('F') . " de " . date('Y');
 
         // URL de verificação e geração do QR Code
-        $verificationUrl = "https://www.exemplo.com/verificar/$codeId";
-        $qrCodePath = 'qrcode.png';
-        QRcode::png($verificationUrl, $qrCodePath, QR_ECLEVEL_L, 3);
+        $verificationUrl = "consulta_hash/$codeId";
+        $absoluteUrl = "$scheme://$host/$verificationUrl";
+        $qrCodePath = 'templates/qrcode.png';
+        QRcode::png($absoluteUrl, $qrCodePath, QR_ECLEVEL_L, 3);
 
         // Carregar e preencher o template
         $templateProcessor = new TemplateProcessor(__DIR__ . '/templates/template.docx');
@@ -67,7 +71,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $mpdf = new Mpdf();
         $mpdf->WriteHTML($htmlContent);
-        $mpdf->Image($qrCodePath, 12, 232, 25, 25, 'png');
+        $mpdf->Image($qrCodePath, 14, 232, 25, 25, 'png');
+
+        // Adicionar o texto diretamente no PDF usando HTML
+        $linkHtml = '
+        <style>
+            .custom-text {
+                font-family: Arial;
+                font-size: 9pt;
+                position: absolute;
+                left: 150px;
+            }
+            .code-text {
+                top: 900px;
+            }
+            .validation-text {
+                top: 916px;
+            }
+            .link-text {
+                top: 932px;
+            }
+        </style>
+        <div class="custom-text code-text">Código da declaração: ' . $codeId . '</div>
+        <div class="custom-text validation-text">A presente declaração pode ter a sua validade comprovada acessando o QRCode à esquerda, ou,</div>
+        <div class="custom-text link-text">acessando o endereço: <a href="' . $absoluteUrl . '">' . $absoluteUrl . '</a></div>
+        ';
+        
+        $mpdf->WriteHTML($linkHtml);
 
         $mpdf->Output("Declaracao_$codeId.pdf", 'I');
 

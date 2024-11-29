@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         echo "CPF: " . $cpf;
 
         // Gerar o código hash
-        $codigoHash = gerarCodigoHash($pessoa_id, $cpf);
+        $codigoHash = gerarCodigoHash();
 
         echo "Hash: " . $codigoHash;
 
@@ -45,14 +45,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 }
 
-function gerarCodigoHash($pessoa_id, $cpf) {
-    // Combine o ID da pessoa e o CPF em uma única string para gerar o hash
-    $dados = $pessoa_id . $cpf . uniqid(rand(), true); // Adicionando um valor único com uniqid()
+function gerarCodigoHash() {
+    $shortCode = date('Ymd') . substr(md5(uniqid()), 0, 12);
 
-    // Gera o hash usando o algoritmo SHA-256
-    $hash = hash('sha256', $dados);
-
-    return $hash;
+    return $shortCode;
 }
 ?>
 
