@@ -12,6 +12,7 @@ if ($conn->connect_error) {
 }
 
 $erro = '';
+$sucesso = '';
 
 function gerarCodigoHash($senha, $cpf) {
     $dados = $senha . $cpf;
@@ -32,17 +33,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($result->num_rows > 0) {
         $user = $result->fetch_assoc();
-        $hashSalvo = $user['senha'];
-
-        if (empty($hashSalvo)) {
-            $erro = "CPF cadastrado, mas sem senha. Clique em 'Criar Senha'.";
+        if (!empty($user['senha'])) {
+            $erro = "Usuário já possui senha cadastrada.";
         } else {
-            $hashInserido = gerarCodigoHash($senha, $cpf);
-            if ($hashInserido === $hashSalvo) {
-                header("Location: menu.php");
-                exit;
+            $novoHash = gerarCodigoHash($senha, $cpf);
+            $updateStmt = $conn->prepare("UPDATE pessoas SET senha = ? WHERE id = ?");
+            $updateStmt->bind_param('si', $novoHash, $user['id']);
+            if ($updateStmt->execute()) {
+                $sucesso = "Senha criada com sucesso! Faça login.";
             } else {
-                $erro = "Senha incorreta.";
+                $erro = "Erro ao salvar a senha. Tente novamente.";
             }
         }
     } else {
@@ -60,18 +60,9 @@ $conn->close();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
-    <script>
-        function formatCPF(input) {
-            let value = input.value.replace(/\D/g, '');
-            if (value.length > 11) value = value.slice(0, 11);
-            input.value = value
-                .replace(/(\d{3})(\d)/, '$1.$2')
-                .replace(/(\d{3})(\d)/, '$1.$2')
-                .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-        }
-    </script>
+    <title>Criar Senha</title>
     <style>
+        /* Reutilizando o CSS do login */
         body {
             font-family: Arial, sans-serif;
             display: flex;
@@ -107,48 +98,51 @@ $conn->close();
         button:hover {
             background-color: #45a049;
         }
-        .btn-cadastro {
+        .btn-login {
             margin-top: 10px;
-            padding: 8px;
-            font-size: 14px;
             background-color: #007BFF;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
         }
-        .btn-cadastro:hover {
+        .btn-login:hover {
             background-color: #0056b3;
         }
         .error {
             color: red;
             font-size: 14px;
         }
-        .cadastro-legenda {
-            margin-top: 5px;
-            font-size: 12px;
-            color: #555;
-            text-align: center;
+        .success {
+            color: green;
+            font-size: 14px;
         }
     </style>
+    <script>
+        function formatCPF(input) {
+            let value = input.value.replace(/\D/g, ''); // Remove caracteres não numéricos
+            if (value.length > 11) value = value.slice(0, 11);
+            input.value = value
+                .replace(/(\d{3})(\d)/, '$1.$2')
+                .replace(/(\d{3})(\d)/, '$1.$2')
+                .replace(/(\d{3})(\d{1,2})$/, '$1-$2'); // Formata o CPF
+        }
+    </script>
 </head>
 <body>
     <div class="login-container">
-        <h2>Login</h2>
+        <h2>Criar Senha</h2>
         <form method="POST" action="">
             <label for="cpf">CPF:</label>
             <input type="text" id="cpf" name="cpf" maxlength="14" oninput="formatCPF(this)" required>
             <label for="senha">Senha:</label>
             <input type="password" id="senha" name="senha" required>
-            <button type="submit">Entrar</button>
-            <?php if ($erro): ?>
-                <p class="error"><?= htmlspecialchars($erro) ?></p>
-            <?php endif; ?>
+            <button type="submit">Criar Senha</button>
         </form>
-        <form action="criar_senha.php" method="GET">
-            <button type="submit" class="btn-cadastro">Criar Senha</button>
+        <?php if ($erro): ?>
+            <p class="error"><?= htmlspecialchars($erro) ?></p>
+        <?php elseif ($sucesso): ?>
+            <p class="success"><?= htmlspecialchars($sucesso) ?></p>
+        <?php endif; ?>
+        <form action="index.php" method="GET" style="margin-top: 10px;">
+            <button type="submit" class="btn-login">Voltar à tela de login</button>
         </form>
-        <p class="cadastro-legenda">Clique aqui para criar uma senha.</p>
     </div>
 </body>
 </html>
