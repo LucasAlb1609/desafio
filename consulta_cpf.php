@@ -1,16 +1,6 @@
 <?php
-// Conexão com o banco de dados
-$servername = "localhost";
-$username = "root";
-$password = "";
-$database = "minha_database";
-
-$conn = new mysqli($servername, $username, $password, $database);
-
-// Verifica conexão
-if ($conn->connect_error) {
-    die("Falha na conexão: " . $conn->connect_error);
-}
+include 'conexao.php';
+include 'permissao3.php';
 
 $resultado = null;
 $erro = null;

@@ -1,13 +1,13 @@
 <?php
-// conexao.php
-$host = "localhost";
-$user = "root"; // usuário padrão do MySQL no XAMPP
-$password = ""; // senha em branco para o usuário root no XAMPP
-$dbname = "minha_database";
+// Conexão com o banco de dados
+$host = 'localhost';
+$user = 'root';
+$password = '';
+$database = 'minha_database';
 
-$conn = new mysqli($host, $user, $password, $dbname);
+$conn = new mysqli($host, $user, $password, $database);
 
 if ($conn->connect_error) {
-    die("Erro de conexão: " . $conn->connect_error);
+    die("Falha na conexão com o banco de dados: " . $conn->connect_error);
 }
 ?>

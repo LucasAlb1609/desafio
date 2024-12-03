@@ -1,6 +1,7 @@
 <?php
 // Conexão com o banco de dados
 include 'conexao.php';
+include 'permissao1.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Receber os dados do formulário

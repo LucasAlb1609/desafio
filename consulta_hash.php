@@ -1,5 +1,6 @@
 <?php
 include 'conexao.php';
+include 'permissao2.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $hashCode = $_POST['hash_code'];

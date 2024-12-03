@@ -1,3 +1,7 @@
+<?php
+include 'permissao3.php'; // Não há restrição de acesso
+?>
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>

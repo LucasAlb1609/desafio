@@ -1,15 +1,5 @@
 <?php
-// Conexão com o banco de dados
-$host = 'localhost';
-$user = 'root';
-$password = '';
-$database = 'minha_database';
-
-$conn = new mysqli($host, $user, $password, $database);
-
-if ($conn->connect_error) {
-    die("Falha na conexão com o banco de dados: " . $conn->connect_error);
-}
+include 'conexao.php';
 
 $erro = '';
 
@@ -25,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Formata o CPF para o padrão armazenado na base de dados
     $cpf = preg_replace('/(\d{3})(\d{3})(\d{3})(\d{2})/', '$1.$2.$3-$4', preg_replace('/\D/', '', $cpf));
 
-    $stmt = $conn->prepare("SELECT id, senha FROM pessoas WHERE cpf = ?");
+    $stmt = $conn->prepare("SELECT id, senha, role_id, nome FROM pessoas WHERE cpf = ?");
     $stmt->bind_param('s', $cpf);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -39,6 +29,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $hashInserido = gerarCodigoHash($senha, $cpf);
             if ($hashInserido === $hashSalvo) {
+                // Adicionando informações na sessão
+                session_start();
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['role_id'] = $user['role_id'];  // Armazenando o role_id na sessão
+                $_SESSION['nome'] = $user['nome'];
+
+                // Redireciona para o menu principal
                 header("Location: menu.php");
                 exit;
             } else {
