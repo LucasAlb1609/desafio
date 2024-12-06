@@ -3,12 +3,12 @@ include 'conexao.php';
 include 'permissao1.php'; // Verificação de permissões
 
 // Função para adicionar pessoa com cidade e CPF formatado
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['nome'], $_POST['sobrenome'], $_POST['cidade'], $_POST['cpf'], $_POST['role'])) {
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['nome'], $_POST['sobrenome'], $_POST['cidade'], $_POST['cpf'], $_POST['roles'])) {
     $nome = $_POST['nome'];
     $sobrenome = $_POST['sobrenome'];
     $cidade = $_POST['cidade'];
     $cpf = $_POST['cpf'];
-    $role = $_POST['role'];
+    $roles = $_POST['roles']; // Recebe um array de roles
 
     // Verificar se o CPF já existe
     $cpfQuery = $conn->prepare("SELECT id FROM pessoas WHERE cpf = ?");
@@ -26,59 +26,97 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['nome'], $_POST['sobren
         $result = $cidadeQuery->get_result();
 
         if ($result->num_rows > 0) {
-            // Cidade existe, obter o ID
             $cidadeId = $result->fetch_assoc()['id'];
         } else {
-            // Cidade não existe, inserir nova
             $cidadeInsert = $conn->prepare("INSERT INTO cidades (nome) VALUES (?)");
             $cidadeInsert->bind_param("s", $cidade);
             $cidadeInsert->execute();
             $cidadeId = $conn->insert_id;
         }
 
-        // Inserir a pessoa com CPF formatado, ID da cidade e role_id
-        $pessoaInsert = $conn->prepare("INSERT INTO pessoas (nome, sobrenome, cpf, cidade_id, role_id) VALUES (?, ?, ?, ?, ?)");
-        $pessoaInsert->bind_param("ssssi", $nome, $sobrenome, $cpf, $cidadeId, $role);
+        // Inserir a pessoa na tabela `pessoas`
+        $pessoaInsert = $conn->prepare("INSERT INTO pessoas (nome, sobrenome, cpf, cidade_id) VALUES (?, ?, ?, ?)");
+        $pessoaInsert->bind_param("sssi", $nome, $sobrenome, $cpf, $cidadeId);
         $pessoaInsert->execute();
-        echo "<p style='color: green;'>Pessoa cadastrada com sucesso!</p>";
+        $pessoaId = $conn->insert_id;
+
+        // Caso o administrador não tenha atribuído nenhum papel, atribui o papel com ID 3
+        if (empty($roles)) {
+            $roles = [3]; // Atribui o papel com ID 3 como padrão
+        }
+
+        // Inserir os papéis na tabela `pessoas_roles`
+        $roleInsert = $conn->prepare("INSERT INTO pessoas_roles (pessoa_id, role_id) VALUES (?, ?)");
+        foreach ($roles as $roleId) {
+            $roleInsert->bind_param("ii", $pessoaId, $roleId);
+            $roleInsert->execute();
+        }
+
+        echo "<p style='color: green;'>Pessoa cadastrada com sucesso com os papéis atribuídos!</p>";
     }
 }
 
-// Função para atualizar pessoa
-if (isset($_POST['editar']) && isset($_POST['novo_nome'], $_POST['novo_sobrenome'], $_POST['nova_cidade'], $_POST['novo_cpf'], $_POST['novo_role'])) {
-    $pessoaId = $_POST['pessoa_id'];
-    $novoNome = $_POST['novo_nome'];
-    $novoSobrenome = $_POST['novo_sobrenome'];
-    $novaCidade = $_POST['nova_cidade'];
-    $novoCpf = $_POST['novo_cpf'];
-    $novoRole = $_POST['novo_role'];
 
-    // Atualizar a cidade
-    $cidadeQuery = $conn->prepare("SELECT id FROM cidades WHERE nome = ?");
-    $cidadeQuery->bind_param("s", $novaCidade);
-    $cidadeQuery->execute();
-    $result = $cidadeQuery->get_result();
+// Função para adicionar pessoa com cidade e CPF formatado
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['nome'], $_POST['sobrenome'], $_POST['cidade'], $_POST['cpf'])) {
+    $nome = $_POST['nome'];
+    $sobrenome = $_POST['sobrenome'];
+    $cidade = $_POST['cidade'];
+    $cpf = $_POST['cpf'];
+    $roles = isset($_POST['roles']) ? $_POST['roles'] : []; // Recebe um array de roles, ou um array vazio se não selecionado
 
-    if ($result->num_rows > 0) {
-        $cidadeId = $result->fetch_assoc()['id'];
+    // Verificar se o CPF já existe
+    $cpfQuery = $conn->prepare("SELECT id FROM pessoas WHERE cpf = ?");
+    $cpfQuery->bind_param("s", $cpf);
+    $cpfQuery->execute();
+    $resultCpf = $cpfQuery->get_result();
+
+    if ($resultCpf->num_rows > 0) {
+        echo "<p style='color: red;'>CPF já cadastrado!</p>";
     } else {
-        $cidadeInsert = $conn->prepare("INSERT INTO cidades (nome) VALUES (?)");
-        $cidadeInsert->bind_param("s", $novaCidade);
-        $cidadeInsert->execute();
-        $cidadeId = $conn->insert_id;
-    }
+        // Verificar se a cidade já existe
+        $cidadeQuery = $conn->prepare("SELECT id FROM cidades WHERE nome = ?");
+        $cidadeQuery->bind_param("s", $cidade);
+        $cidadeQuery->execute();
+        $result = $cidadeQuery->get_result();
 
-    // Atualizar a pessoa
-    $pessoaUpdate = $conn->prepare("UPDATE pessoas SET nome = ?, sobrenome = ?, cpf = ?, cidade_id = ?, role_id = ? WHERE id = ?");
-    $pessoaUpdate->bind_param("sssiii", $novoNome, $novoSobrenome, $novoCpf, $cidadeId, $novoRole, $pessoaId);
-    $pessoaUpdate->execute();
+        if ($result->num_rows > 0) {
+            $cidadeId = $result->fetch_assoc()['id'];
+        } else {
+            $cidadeInsert = $conn->prepare("INSERT INTO cidades (nome) VALUES (?)");
+            $cidadeInsert->bind_param("s", $cidade);
+            $cidadeInsert->execute();
+            $cidadeId = $conn->insert_id;
+        }
+
+        // Inserir a pessoa na tabela `pessoas`
+        $pessoaInsert = $conn->prepare("INSERT INTO pessoas (nome, sobrenome, cpf, cidade_id) VALUES (?, ?, ?, ?)");
+        $pessoaInsert->bind_param("sssi", $nome, $sobrenome, $cpf, $cidadeId);
+        $pessoaInsert->execute();
+        $pessoaId = $conn->insert_id;
+
+        // Caso o administrador não tenha atribuído nenhum papel, atribui o papel com ID 3
+        if (empty($roles)) {
+            $roles = [3]; // Atribui o papel com ID 3 como padrão
+        }
+
+        // Inserir os papéis na tabela `pessoas_roles`
+        $roleInsert = $conn->prepare("INSERT INTO pessoas_roles (pessoa_id, role_id) VALUES (?, ?)");
+        foreach ($roles as $roleId) {
+            $roleInsert->bind_param("ii", $pessoaId, $roleId);
+            $roleInsert->execute();
+        }
+
+        echo "<p style='color: green;'>Pessoa cadastrada com sucesso com os papéis atribuídos!</p>";
+    }
 }
+
 
 // Função para excluir pessoa
 if (isset($_GET['excluir_id'])) {
     $excluirId = $_GET['excluir_id'];
 
-    // Excluir a pessoa
+    // Excluir a pessoa e os papéis dela
     $excluirQuery = $conn->prepare("DELETE FROM pessoas WHERE id = ?");
     $excluirQuery->bind_param("i", $excluirId);
     $excluirQuery->execute();
@@ -86,10 +124,12 @@ if (isset($_GET['excluir_id'])) {
 }
 
 // Obter a lista de pessoas e cidades
-$pessoasQuery = $conn->query("SELECT p.id, p.nome, p.sobrenome, p.cpf, c.nome AS cidade, r.nome AS papel 
-                              FROM pessoas p 
-                              JOIN cidades c ON p.cidade_id = c.id
-                              JOIN roles r ON p.role_id = r.id");
+$pessoasQuery = $conn->query("
+    SELECT p.id, p.nome, p.sobrenome, p.cpf, c.nome AS cidade 
+    FROM pessoas p 
+    JOIN cidades c ON p.cidade_id = c.id
+");
+
 ?>
 
 <!DOCTYPE html>
@@ -133,8 +173,8 @@ $pessoasQuery = $conn->query("SELECT p.id, p.nome, p.sobrenome, p.cpf, c.nome AS
         Sobrenome: <input type="text" name="sobrenome" required>
         Cidade: <input type="text" name="cidade" required>
         CPF: <input type="text" name="cpf" oninput="formatCpf(this)" maxlength="14" required>
-        Papel: 
-        <select name="role" required>
+        Papel(s): 
+        <select name="roles[]" multiple>
             <?php
             // Exibir papéis (roles) para o dropdown
             $rolesQuery = $conn->query("SELECT id, nome FROM roles");
@@ -162,45 +202,52 @@ $pessoasQuery = $conn->query("SELECT p.id, p.nome, p.sobrenome, p.cpf, c.nome AS
                 <td><?= $row['sobrenome'] ?></td>
                 <td><?= $row['cpf'] ?></td>
                 <td><?= $row['cidade'] ?></td>
-                <td><?= $row['papel'] ?></td>
+                <td>
+                    <?php
+                    // Buscar papéis associados a essa pessoa
+                    $pessoaRolesQuery = $conn->prepare("SELECT r.nome FROM roles r 
+                                                        JOIN pessoas_roles pr ON r.id = pr.role_id 
+                                                        WHERE pr.pessoa_id = ?");
+                    $pessoaRolesQuery->bind_param("i", $row['id']);
+                    $pessoaRolesQuery->execute();
+                    $rolesResult = $pessoaRolesQuery->get_result();
+                    $roles = [];
+                    while ($role = $rolesResult->fetch_assoc()) {
+                        $roles[] = $role['nome'];
+                    }
+                    echo implode(', ', $roles);
+                    ?>
+                </td>
                 <td>
                     <form method="POST">
                         <input type="hidden" name="pessoa_id" value="<?= $row['id'] ?>">
                         Nome: <input type="text" name="novo_nome" value="<?= $row['nome'] ?>" required>
                         Sobrenome: <input type="text" name="novo_sobrenome" value="<?= $row['sobrenome'] ?>" required>
-                        CPF: <input type="text" name="novo_cpf" value="<?= $row['cpf'] ?>" oninput="formatCpf(this)" maxlength="14" required>
+                        CPF: <input type="text" name="novo_cpf" value="<?= $row['cpf'] ?>" required>
                         Cidade: <input type="text" name="nova_cidade" value="<?= $row['cidade'] ?>" required>
-                        Papel: 
-                        <select name="novo_role" required>
+                        Papel(s): 
+                        <select name="novos_roles[]" multiple required>
                             <?php
-                            // Exibir papéis (roles) para o dropdown
                             $rolesQuery = $conn->query("SELECT id, nome FROM roles");
                             while ($role = $rolesQuery->fetch_assoc()) {
-                                $selected = ($role['id'] == $row['role_id']) ? 'selected' : '';
-                                echo "<option value='" . $role['id'] . "' $selected>" . $role['nome'] . "</option>";
+                                echo "<option value='" . $role['id'] . "'>" . $role['nome'] . "</option>";
                             }
                             ?>
                         </select>
                         <button type="submit" name="editar">Editar</button>
                     </form>
-                    <a href="pessoas.php?excluir_id=<?= $row['id'] ?>" onclick="return confirmDelete()">Excluir</a>
+                    <a href="?excluir_id=<?= $row['id'] ?>" style="color: red;">Excluir</a>
                 </td>
             </tr>
         <?php } ?>
     </table>
-
+    
     <script>
-        // Função de confirmação de exclusão
-        function confirmDelete() {
-            return confirm('Tem certeza de que deseja excluir este usuário?');
-        }
-
-        // Formatação do CPF automaticamente
         function formatCpf(input) {
-            let value = input.value.replace(/\D/g, '');
-            value = value.replace(/(\d{3})(\d)/, '$1.$2');
-            value = value.replace(/(\d{3})(\d)/, '$1.$2');
-            value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+            var value = input.value.replace(/\D/g, ''); // Remove tudo o que não for número
+            if (value.length <= 11) {
+                value = value.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+            }
             input.value = value;
         }
     </script>

@@ -15,7 +15,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Formata o CPF para o padrão armazenado na base de dados
     $cpf = preg_replace('/(\d{3})(\d{3})(\d{3})(\d{2})/', '$1.$2.$3-$4', preg_replace('/\D/', '', $cpf));
 
-    $stmt = $conn->prepare("SELECT id, senha, role_id, nome FROM pessoas WHERE cpf = ?");
+    $stmt = $conn->prepare("SELECT p.id, p.senha, pr.role_id, p.nome FROM pessoas p
+                        LEFT JOIN pessoas_roles pr ON p.id = pr.pessoa_id
+                        WHERE p.cpf = ?");
     $stmt->bind_param('s', $cpf);
     $stmt->execute();
     $result = $stmt->get_result();

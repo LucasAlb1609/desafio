@@ -40,5 +40,13 @@
         <p><a href="consulta_hash.php">Buscar Hash Code</a></p>
     <?php endif; ?>
 
+    <!-- Link para visualizar upload dos usuários -->
+    <?php if ($role_id == 1 || $role_id == 2): ?>
+        <p><a href="visualizar_documentos.php">Buscar Documentos de Usuários Inscritos</a></p>
+    <?php endif; ?>
+
+    <!-- Link para fazer upload de arquivos -->
+        <p><a href="upload.php">Enviar Documentos de Inscrição</a></p>
+
 </body>
 </html>
