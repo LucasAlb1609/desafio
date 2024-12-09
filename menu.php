@@ -24,6 +24,11 @@
         <p><a href="pessoas.php">Cadastrar Novo Usuário</a></p>
     <?php endif; ?>
 
+    <!-- Link para Cadastrar Vínculo (visível apenas para Administrador - role_id = 1) -->
+    <?php if ($role_id == 1): ?>
+        <p><a href="criar_papel.php">Cadastrar Novo Papel de Usuário</a></p>
+    <?php endif; ?>
+
     <!-- Link para Gerar Declaração (visível para todos) -->
     <p><a href="gerar_declaracao.php">Gerar Declaração</a></p>
 
